@@ -1,0 +1,53 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "studentId": "20240001",
+      "name": "김영화",
+      "password": "demo123"
+    }
+  ],
+  "videos": [
+    {
+      "id": 2,
+      "title": "지연이의 파이아키아",
+      "youtubeUrl": "https://youtu.be/8xjuVebySoQ",
+      "thumbnail": "https://img.youtube.com/vi/8xjuVebySoQ/maxresdefault.jpg",
+      "genre": "드라마",
+      "duration": "15",
+      "description": ",",
+      "director": "김영화",
+      "directorId": 1,
+      "year": 2026,
+      "views": 4,
+      "likes": [],
+      "comments": [
+        {
+          "id": 1,
+          "userId": 1,
+          "userName": "김영화",
+          "content": "와우",
+          "createdAt": "2026-02-11T05:09:42.128Z"
+        }
+      ],
+      "createdAt": "2026-02-11T05:09:21.062Z"
+    },
+    {
+      "id": 1,
+      "title": "졸업작품: 어느 봄날의 기억",
+      "director": "김영화",
+      "directorId": 1,
+      "year": 2024,
+      "genre": "드라마",
+      "duration": "23분",
+      "youtubeUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+      "description": "잊고 싶었던 과거와 마주하게 된 한 청년의 이야기",
+      "thumbnail": "https://img.youtube.com/vi/dQw4w9WgXcQ/maxresdefault.jpg",
+      "views": 330,
+      "likes": [],
+      "comments": [],
+      "createdAt": "2026-02-11T05:08:14.517Z"
+    }
+  ],
+  "backupDate": "2026-02-12T05:05:29.426Z"
+}

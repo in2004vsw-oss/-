@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>영화과 아카이브</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- 전역 오류 메시지 -->
+    <div id="globalMessage" class="global-message hidden" role="alert"></div>
+
+    <!-- 로딩 오버레이 -->
+    <div id="loadingOverlay" class="loading-overlay hidden" aria-hidden="true">
+        <div class="loading-spinner"></div>
+        <span class="loading-text">불러오는 중...</span>
+    </div>
+
+    <!-- ================================
+         🏠 메인 화면 (첫 화면)
+         ================================ -->
+    <div id="mainScreen" class="main-screen">
+        <header class="header">
+            <div class="header-content">
+                <div class="site-logo">
+                    <div class="site-logo-icon">▶</div>
+                    <span>영화과 아카이브</span>
+                </div>
+                <div class="header-actions">
+                    <button class="btn-upload" onclick="checkLoginAndUpload()">
+                        <span>📤</span>
+                        <span>업로드</span>
+                    </button>
+                    <span class="user-info" id="userName"></span>
+                    <button class="btn-login" id="loginButton" onclick="showLoginModal()">로그인</button>
+                    <button class="btn-logout hidden" id="logoutButton" onclick="logout()">로그아웃</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-container">
+            <aside class="sidebar">
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">🔍 검색</h3>
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="영상 검색..." oninput="filterVideos()" aria-label="영상 검색">
+                    </div>
+                </div>
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">📅 연도</h3>
+                    <div class="filter-group" id="yearFilters"></div>
+                </div>
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">🎭 장르</h3>
+                    <div class="filter-group" id="genreFilters"></div>
+                </div>
+                <div class="sidebar-section">
+                    <h3 class="sidebar-title">🎬 카테고리</h3>
+                    <div class="filter-group" id="categoryFilters"></div>
+                </div>
+                <button class="btn-reset-filters" onclick="resetFilters()">필터 초기화</button>
+            </aside>
+
+            <div class="content">
+                <div class="content-header">
+                    <div>
+                        <h2 class="section-title" id="sectionTitle">전체 영상</h2>
+                        <p class="video-count" id="videoCount">0개의 영상</p>
+                    </div>
+                    <div class="sort-options">
+                        <label for="sortSelect">정렬:</label>
+                        <select id="sortSelect" onchange="filterVideos()">
+                            <option value="latest">최신순</option>
+                            <option value="oldest">오래된순</option>
+                            <option value="views">조회수순</option>
+                            <option value="likes">좋아요순</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="video-grid" id="videoGrid"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================
+         🔐 로그인 / 회원가입 모달
+         ================================ -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content login-modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="authModalTitle">로그인</h2>
+                <button class="btn-close" onclick="closeLoginModal()" aria-label="닫기">×</button>
+            </div>
+
+            <div class="modal-body">
+                <div class="logo">▶</div>
+                <h1>영화과 아카이브</h1>
+                <p class="subtitle">학과 영상 스트리밍 플랫폼</p>
+
+                <div class="auth-tabs">
+                    <button type="button" class="auth-tab active" data-tab="login" onclick="switchAuthTab('login')">로그인</button>
+                    <button type="button" class="auth-tab" data-tab="signup" onclick="switchAuthTab('signup')">회원가입</button>
+                </div>
+
+                <div id="authError" class="auth-error hidden" role="alert"></div>
+
+                <form id="loginForm" class="auth-form">
+                    <div class="input-group">
+                        <label for="studentId">학번</label>
+                        <input type="text" id="studentId" placeholder="20240001" maxlength="8" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label for="password">비밀번호</label>
+                        <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn">로그인</button>
+                </form>
+
+                <form id="signupForm" class="auth-form hidden">
+                    <div class="input-group">
+                        <label for="signupStudentId">학번</label>
+                        <input type="text" id="signupStudentId" placeholder="20240001" maxlength="8" required autocomplete="username">
+                    </div>
+                    <div class="input-group">
+                        <label for="signupName">이름</label>
+                        <input type="text" id="signupName" placeholder="홍길동" required autocomplete="name">
+                    </div>
+                    <div class="input-group">
+                        <label for="signupPassword">비밀번호</label>
+                        <input type="password" id="signupPassword" placeholder="••••••••" required autocomplete="new-password" minlength="6">
+                    </div>
+                    <div class="input-group">
+                        <label for="signupPasswordConfirm">비밀번호 확인</label>
+                        <input type="password" id="signupPasswordConfirm" placeholder="••••••••" required autocomplete="new-password" minlength="6">
+                    </div>
+                    <button type="submit" class="btn">회원가입</button>
+                </form>
+
+                <div class="test-account" id="testAccountHint">
+                    <strong>💡 테스트 계정 (로컬 모드)</strong>
+                    학번: 20240001 / 비밀번호: demo123
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================
+         🎬 영상 재생 화면
+         ================================ -->
+    <div id="playerScreen" class="player-screen hidden">
+        <div class="player-header">
+            <div class="player-header-content">
+                <button class="btn-back" onclick="closePlayer()">
+                    <span>←</span>
+                    <span>목록으로</span>
+                </button>
+                <div class="header-actions">
+                    <span class="user-info" id="playerUserName"></span>
+                    <button class="btn-login" id="playerLoginButton" onclick="showLoginModal()">로그인</button>
+                    <button class="btn-logout hidden" id="playerLogoutButton" onclick="logout()">로그아웃</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="player-content">
+            <div class="player-main">
+                <div class="video-player" id="videoPlayer"></div>
+                <div class="video-details">
+                    <h1 id="playerTitle"></h1>
+                    <div class="detail-meta" id="playerMeta"></div>
+                    <div class="detail-actions">
+                        <button class="btn-like" id="likeButton" onclick="toggleLike()">
+                            <span id="likeIcon">🤍</span>
+                            <span id="likeCount">0</span>
+                        </button>
+                        <span class="genre-tag" id="playerGenre"></span>
+                    </div>
+                    <div class="video-description" id="playerDescription"></div>
+                    <div class="youtube-link" id="youtubeLink"></div>
+                </div>
+            </div>
+
+            <div class="comments-section">
+                <h3 class="comments-title">
+                    <span>💬</span>
+                    <span>댓글 <span id="commentCount">0</span></span>
+                </h3>
+                <div class="comment-form">
+                    <textarea id="commentInput" rows="3" placeholder="댓글을 남겨보세요..."></textarea>
+                    <button class="btn-comment" id="commentSubmitBtn" onclick="addComment()">댓글 작성</button>
+                </div>
+                <div class="comments-list" id="commentsList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================
+         📤 업로드 모달
+         ================================ -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">
+                    <span>📤</span>
+                    <span>영상 업로드</span>
+                </h2>
+                <button class="btn-close" onclick="closeUploadModal()" aria-label="닫기">×</button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadForm">
+                    <div class="form-group">
+                        <label for="uploadTitle">작품 제목 *</label>
+                        <input type="text" id="uploadTitle" placeholder="예: 어느 봄날의 기억" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="uploadUrl">유튜브 URL * <span class="form-hint">(일부공개 또는 공개 영상)</span></label>
+                        <input type="url" id="uploadUrl" placeholder="https://www.youtube.com/watch?v=..." oninput="generateThumbnail()" required>
+                        <p class="form-note">💡 유튜브에 영상을 업로드한 후 링크를 복사해서 붙여넣으세요</p>
+                    </div>
+                    <div class="form-group">
+                        <label>썸네일 *</label>
+                        <div class="thumbnail-options">
+                            <label class="radio-option">
+                                <input type="radio" name="thumbnailOption" value="auto" checked onchange="toggleThumbnailUpload()">
+                                <span>유튜브 자동 썸네일 사용</span>
+                            </label>
+                            <label class="radio-option">
+                                <input type="radio" name="thumbnailOption" value="custom" onchange="toggleThumbnailUpload()">
+                                <span>직접 업로드</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div id="autoThumbnailPreview"></div>
+                    <div id="customThumbnailSection" class="hidden">
+                        <div class="form-group">
+                            <label for="customThumbnailInput">썸네일 이미지 업로드 (JPG, PNG, 최대 5MB)</label>
+                            <input type="file" id="customThumbnailInput" accept="image/*" onchange="handleCustomThumbnail()" class="file-input">
+                            <div id="customThumbnailPreview"></div>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uploadGenre">장르 *</label>
+                            <select id="uploadGenre">
+                                <option>드라마</option>
+                                <option>다큐멘터리</option>
+                                <option>실험영화</option>
+                                <option>애니메이션</option>
+                                <option>뮤직비디오</option>
+                                <option>코미디</option>
+                                <option>공포</option>
+                                <option>액션</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadDuration">상영 시간 *</label>
+                            <input type="text" id="uploadDuration" placeholder="예: 15분" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="uploadCategory">카테고리 *</label>
+                            <select id="uploadCategory">
+                                <option>졸업영화</option>
+                                <option>수업작품</option>
+                                <option>개인작품</option>
+                                <option>공모전</option>
+                                <option>기타</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadYear">연도 *</label>
+                            <select id="uploadYear"></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="uploadDescription">작품 설명 *</label>
+                        <textarea id="uploadDescription" placeholder="작품에 대한 간단한 설명을 입력해주세요..." required></textarea>
+                    </div>
+                    <div class="info-box">
+                        <strong>📌 업로드 방법</strong>
+                        <ol>
+                            <li>유튜브에 영상을 업로드하세요 (일부공개 권장)</li>
+                            <li>영상 URL을 복사하여 위 칸에 붙여넣으세요</li>
+                            <li>썸네일은 자동 생성되거나 직접 업로드할 수 있습니다</li>
+                            <li>나머지 정보를 입력하고 업로드 버튼을 누르세요</li>
+                        </ol>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary" onclick="closeUploadModal()">취소</button>
+                <button type="button" class="btn-primary" id="uploadSubmitBtn" onclick="submitUpload()">업로드</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="api.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
