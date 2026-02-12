@@ -12,8 +12,15 @@
     };
 
     let supabase = null;
-    if (config.SUPABASE_URL && config.SUPABASE_ANON_KEY && typeof global.createClient === 'function') {
-        supabase = global.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
+    // CDN(@supabase/supabase-js@2)을 사용하는 경우
+    // 전역 객체는 global.supabase 이고, createClient 는 global.supabase.createClient 입니다.
+    if (
+        config.SUPABASE_URL &&
+        config.SUPABASE_ANON_KEY &&
+        global.supabase &&
+        typeof global.supabase.createClient === 'function'
+    ) {
+        supabase = global.supabase.createClient(config.SUPABASE_URL, config.SUPABASE_ANON_KEY);
     }
 
     function log(...args) {
